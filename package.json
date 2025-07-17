@@ -7,10 +7,15 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "npx prisma db push --force-reset && npm run db:seed",
+    "db:seed": "tsx db/seed.ts",
+    "db:seed:agents": "tsx db/seeds/seed_agents.ts",
+    "db:seed:operations": "tsx db/seeds/seed_operations.ts",
+    "db:seed:intelligence": "tsx db/seeds/seed_intelligence.ts",
+    "db:seed:systems": "tsx db/seeds/seed_systems.ts",
+    "db:seed:activity": "tsx db/seeds/seed_activity.ts",
+    "db:reset": "npx prisma db push --force-reset --schema=./db/schema.prisma && npm run db:seed",
     "db:verify": "tsx verify-db.ts",
-    "db:studio": "npx prisma studio"
+    "db:studio": "npx prisma studio --schema=./db/schema.prisma"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

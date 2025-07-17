@@ -10,13 +10,15 @@ async function verifyDatabase() {
     const intelligenceCount = await prisma.intelligenceReport.count()
     const systemCount = await prisma.system.count()
     const activityCount = await prisma.activityLog.count()
+    const chatCount = await prisma.chatMessage.count()
 
     console.log('📊 Database Statistics:')
     console.log(`   Agents: ${agentCount}`)
     console.log(`   Operations: ${operationCount}`)
     console.log(`   Intelligence Reports: ${intelligenceCount}`)
     console.log(`   Systems: ${systemCount}`)
-    console.log(`   Activity Logs: ${activityCount}\n`)
+    console.log(`   Activity Logs: ${activityCount}`)
+    console.log(`   Chat Messages: ${chatCount}\n`)
 
     // Test a complex query with relations
     const agentWithRelations = await prisma.agent.findFirst({
