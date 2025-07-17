@@ -1,0 +1,216 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Agent model for managing field operatives
+model Agent {
+  id          String   @id @default(cuid())
+  agentId     String   @unique // Format: G-078W
+  name        String   // Codename: VENGEFUL SPIRIT
+  status      String   // active, standby, compromised, training
+  location    String   // Current location
+  lastSeen    DateTime @default(now())
+  missions    Int      @default(0) // Mission count
+  riskLevel   String   // low, medium, high, critical
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  operationAssignments OperationAssignment[]
+  activityLogs         ActivityLog[]
+  intelligenceReports  IntelligenceReport[]
+  chatMessages         ChatMessage[]
+
+  @@map("agents")
+}
+
+// Operation model for managing missions
+model Operation {
+  id                   String   @id @default(cuid())
+  operationId          String   @unique // Format: OP-OMEGA-001
+  name                 String   // SHADOW PROTOCOL
+  status               String   // active, planning, completed, compromised
+  priority             String   // low, medium, high, critical
+  location             String   // Eastern Europe
+  progress             Int      @default(0) // Percentage 0-100
+  startDate            DateTime
+  estimatedCompletion  DateTime
+  actualCompletion     DateTime?
+  description          String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relationships
+  assignments   OperationAssignment[]
+  objectives    OperationObjective[]
+  statusUpdates OperationStatusUpdate[]
+
+  @@map("operations")
+}
+
+// Junction table for many-to-many relationship between agents and operations
+model OperationAssignment {
+  id          String   @id @default(cuid())
+  agentId     String
+  operationId String
+  assignedAt  DateTime @default(now())
+  role        String?  // lead, support, surveillance, etc.
+  isActive    Boolean  @default(true)
+
+  // Relationships
+  agent     Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  operation Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, operationId])
+  @@map("operation_assignments")
+}
+
+// Operation objectives for tracking mission goals
+model OperationObjective {
+  id          String   @id @default(cuid())
+  operationId String
+  title       String   // "Locate target"
+  description String?
+  isCompleted Boolean  @default(false)
+  completedAt DateTime?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  // Relationships
+  operation Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+
+  @@map("operation_objectives")
+}
+
+// Track operation status changes over time
+model OperationStatusUpdate {
+  id          String   @id @default(cuid())
+  operationId String
+  fromStatus  String?
+  toStatus    String
+  notes       String?
+  timestamp   DateTime @default(now())
+
+  // Relationships
+  operation Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+
+  @@map("operation_status_updates")
+}
+
+// Intelligence reports linked to agents
+model IntelligenceReport {
+  id             String   @id @default(cuid())
+  reportId       String   @unique // Format: INT-2025-001
+  title          String   // CYBERCRIME NETWORK ANALYSIS
+  classification String   // TOP SECRET, SECRET, CONFIDENTIAL
+  source         String   // SIGINT, HUMINT, OSINT, DIPLOMATIC
+  location       String   // Eastern Europe
+  status         String   // verified, pending, active
+  threatLevel    String   // low, medium, high, critical
+  summary        String
+  content        String?  // Full report content
+  tags           String   // JSON array of tags
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Optional agent link
+  agentId        String?
+  agent          Agent?   @relation(fields: [agentId], references: [id])
+
+  @@map("intelligence_reports")
+}
+
+// System monitoring for infrastructure
+model System {
+  id               String   @id @default(cuid())
+  systemId         String   @unique // Format: SYS-001
+  name             String   // COMMAND SERVER ALPHA
+  type             String   // Primary Server, Database, Firewall, etc.
+  status           String   // online, warning, maintenance, offline
+  health           Int      @default(100) // 0-100
+  location         String   // Data Center 1
+  uptime           String   // 247 days
+  lastMaintenance  DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relationships
+  metrics     SystemMetric[]
+  maintenances SystemMaintenance[]
+
+  @@map("systems")
+}
+
+// Historical system performance metrics
+model SystemMetric {
+  id        String   @id @default(cuid())
+  systemId  String
+  cpu       Int      @default(0)    // CPU usage percentage
+  memory    Int      @default(0)    // Memory usage percentage
+  storage   Int      @default(0)    // Storage usage percentage
+  timestamp DateTime @default(now())
+
+  // Relationships
+  system System @relation(fields: [systemId], references: [id], onDelete: Cascade)
+
+  @@map("system_metrics")
+}
+
+// System maintenance scheduling
+model SystemMaintenance {
+  id           String   @id @default(cuid())
+  systemId     String
+  title        String   // "Routine maintenance"
+  description  String?
+  scheduledAt  DateTime
+  completedAt  DateTime?
+  status       String   // scheduled, in_progress, completed, cancelled
+  performedBy  String?  // Technician name
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  // Relationships
+  system System @relation(fields: [systemId], references: [id], onDelete: Cascade)
+
+  @@map("system_maintenance")
+}
+
+// Activity log for tracking agent activities
+model ActivityLog {
+  id        String   @id @default(cuid())
+  agentId   String
+  action    String   // "completed mission in", "extracted high-value target"
+  location  String   // Berlin, Cairo, etc.
+  target    String?  // Optional target information
+  timestamp DateTime @default(now())
+  details   String?  // Additional details
+
+  // Relationships
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("activity_logs")
+}
+
+// Chat messages for encrypted communications
+model ChatMessage {
+  id        String   @id @default(cuid())
+  agentId   String?  // Optional - system messages might not have agent
+  channel   String   // Channel or room identifier
+  message   String   // Message content
+  encrypted Boolean  @default(true)
+  timestamp DateTime @default(now())
+  isSystem  Boolean  @default(false) // System-generated messages
+
+  // Relationships
+  agent Agent? @relation(fields: [agentId], references: [id])
+
+  @@map("chat_messages")
+}
