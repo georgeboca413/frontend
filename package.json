@@ -13,6 +13,7 @@
     "db:seed:intelligence": "tsx db/seeds/seed_intelligence.ts",
     "db:seed:systems": "tsx db/seeds/seed_systems.ts",
     "db:seed:activity": "tsx db/seeds/seed_activity.ts",
+    "db:generate" : "prisma generate --schema=/db/schema.prisma",
     "db:reset": "npx prisma db push --force-reset --schema=./db/schema.prisma && npm run db:seed",
     "db:verify": "tsx verify-db.ts",
     "db:studio": "npx prisma studio --schema=./db/schema.prisma"
