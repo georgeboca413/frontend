@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { PageTitle, PageSubtitle } from "@/components/layout";
 import { OpsMissionsStats, OpsMissionsStatsList, OpsOperationDetails } from "@/features/operations";
@@ -8,6 +8,11 @@ import type { OperationWithRelations } from "@/lib/types";
 
 export default function OperationsPage() {
   const [selectedOperation, setSelectedOperation] = useState<OperationWithRelations | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshKey((prev) => prev + 1);
+  }, []);
 
   return (
     <div className="p-6 space-y-6">
@@ -27,11 +32,15 @@ export default function OperationsPage() {
       <OpsMissionsStats />
 
       {/* Operations List */}
-      <OpsMissionsStatsList onOperationSelect={setSelectedOperation} />
+      <OpsMissionsStatsList key={refreshKey} onOperationSelect={setSelectedOperation} />
 
       {/* Operation Detail Modal */}
       {selectedOperation && (
-        <OpsOperationDetails operation={selectedOperation} onClose={() => setSelectedOperation(null)} />
+        <OpsOperationDetails
+          operation={selectedOperation}
+          onClose={() => setSelectedOperation(null)}
+          onDelete={handleRefresh}
+        />
       )}
     </div>
   );

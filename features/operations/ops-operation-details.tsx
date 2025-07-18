@@ -1,16 +1,35 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Trash2 } from "lucide-react";
+import { deleteOperation } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 import type { OperationWithRelations } from "@/lib/types";
 
 type Props = {
   operation: OperationWithRelations;
   onClose: () => void;
+  onDelete?: () => void;
 };
 
-export function OpsOperationDetails({ operation, onClose }: Props) {
+export function OpsOperationDetails({ operation, onClose, onDelete }: Props) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
+
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
@@ -46,6 +65,31 @@ export function OpsOperationDetails({ operation, onClose }: Props) {
         return "bg-white/20 text-white";
       default:
         return "bg-neutral-500/20 text-neutral-300";
+    }
+  };
+
+  const handleDeleteOperation = async () => {
+    try {
+      setIsDeleting(true);
+      await deleteOperation(operation.id);
+
+      // Close modal and refresh operations
+      onClose();
+      onDelete?.();
+
+      toast({
+        title: "Operation Deleted",
+        description: "The operation has been successfully deleted.",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete operation. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -151,6 +195,40 @@ export function OpsOperationDetails({ operation, onClose }: Props) {
             >
               Assign Agents
             </Button>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 bg-transparent"
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {isDeleting ? "Deleting..." : "Delete Operation"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-neutral-900 border-neutral-700">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-white">Delete Operation</AlertDialogTitle>
+                  <AlertDialogDescription className="text-neutral-300">
+                    Are you sure you want to delete "{operation.name}"? This action cannot be undone and will
+                    permanently remove the operation and all associated data.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="border-neutral-600 text-neutral-300 hover:bg-neutral-800">
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteOperation}
+                    className="bg-red-500 hover:bg-red-600 text-white"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardContent>
       </Card>

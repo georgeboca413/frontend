@@ -113,3 +113,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to create operation" }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Operation ID is required" }, { status: 400 });
+    }
+
+    // Delete the operation and all related data
+    await prisma.operation.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Operation deleted successfully" }, { status: 200 });
+  } catch (error) {
+    console.error("Error deleting operation:", error);
+    return NextResponse.json({ error: "Failed to delete operation" }, { status: 500 });
+  }
+}

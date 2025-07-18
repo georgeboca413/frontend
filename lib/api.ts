@@ -92,3 +92,16 @@ export async function createOperation(operationData: any) {
   const data = await response.json();
   return data.operation;
 }
+
+export async function deleteOperation(operationId: string) {
+  const response = await fetch(`/api/operations?id=${operationId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete operation");
+  }
+
+  const data = await response.json();
+  return data;
+}

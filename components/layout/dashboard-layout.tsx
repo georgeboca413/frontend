@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Sidebar, TopBar } from "@/components/layout";
+import { Toaster } from "@/components/ui/toaster";
 
 const sectionTitles: Record<string, string> = {
   "/": "COMMAND CENTER",
@@ -53,6 +54,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Page Content */}
         <div className="flex-1 overflow-auto">{children}</div>
       </div>
+
+      <Toaster />
     </div>
   );
 }
