@@ -48,6 +48,5 @@
 ### Feature: Systems
 
 - <SysStats />
-- <SysLogs />
 - <SysSystemThumbnail />
 - <SysSystemDetails />

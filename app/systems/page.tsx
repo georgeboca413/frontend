@@ -132,6 +132,8 @@ export default function SystemsPage() {
       </div>
 
       {/* System Overview Stats */}
+      {/* AI_TIP: <SysStats/> Start*/}
+  
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-neutral-900 border-neutral-700">
           <CardContent className="p-4">
@@ -181,8 +183,10 @@ export default function SystemsPage() {
           </CardContent>
         </Card>
       </div>
+      {/* AI_TIP: <SysStats/> End*/}
 
       {/* Systems Grid */}
+      {/* AI_TIP: <SysSystemThumbnail/> Start*/}
       {loading && (
         <div className="flex items-center justify-center py-8">
           <div className="text-neutral-400">Loading systems...</div>
@@ -273,8 +277,10 @@ export default function SystemsPage() {
         ))}
         </div>
       )}
+      {/* AI_TIP: <SysSystemThumbnail/> End*/}
 
       {/* System Detail Modal */}
+      {/* AI_TIP: <SysSystemDetails/> Start*/}
       {selectedSystem && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <Card className="bg-neutral-900 border-neutral-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -401,5 +407,6 @@ export default function SystemsPage() {
         </div>
       )}
     </div>
+    {/* AI_TIP: <SysSystemDetails/> End*/}
   )
 }
