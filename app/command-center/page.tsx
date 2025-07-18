@@ -1,16 +1,18 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function CommandCenterPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Main Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Agent Status Overview */}
+        {/* AI_TIPS: <AgentAllocation /> Start*/}
         <Card className="lg:col-span-4 bg-neutral-900 border-neutral-700">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-neutral-300 tracking-wider">AGENT ALLOCATION</CardTitle>
+            <CardTitle className="text-sm font-medium text-neutral-300 tracking-wider">
+              AGENT ALLOCATION
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-4 mb-6">
@@ -45,8 +47,8 @@ export default function CommandCenterPage() {
                         agent.status === "active"
                           ? "bg-white"
                           : agent.status === "standby"
-                            ? "bg-neutral-500"
-                            : "bg-red-500"
+                          ? "bg-neutral-500"
+                          : "bg-red-500"
                       }`}
                     ></div>
                     <div>
@@ -59,11 +61,14 @@ export default function CommandCenterPage() {
             </div>
           </CardContent>
         </Card>
+        {/* AI_TIP: <AgentAllocation /> End*/}
 
-        {/* Activity Log */}
+        {/* AI_TIP: <AgentActivityLog /> Start */}
         <Card className="lg:col-span-4 bg-neutral-900 border-neutral-700">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-neutral-300 tracking-wider">ACTIVITY LOG</CardTitle>
+            <CardTitle className="text-sm font-medium text-neutral-300 tracking-wider">
+              ACTIVITY LOG
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-80 overflow-y-auto">
@@ -124,8 +129,9 @@ export default function CommandCenterPage() {
             </div>
           </CardContent>
         </Card>
+        {/* AI_TIP: <AgentActivityLog /> End */}
 
-        {/* Encrypted Chat Activity */}
+        {/* AI_TIP: <CmdChatActivity /> Start */}
         <Card className="lg:col-span-4 bg-neutral-900 border-neutral-700">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-neutral-300 tracking-wider">
@@ -161,7 +167,7 @@ export default function CommandCenterPage() {
           </CardContent>
         </Card>
 
-        {/* Mission Activity Chart */}
+        {/* AI_TIP: <OpsMissionsOverviewChart /> Start */}
         <Card className="lg:col-span-8 bg-neutral-900 border-neutral-700">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-neutral-300 tracking-wider">
@@ -210,11 +216,14 @@ export default function CommandCenterPage() {
             </div>
           </CardContent>
         </Card>
+        {/* AI_TIP: <OpsMissionsOverviewChart /> End */}
 
-        {/* Mission Information */}
+        {/* AI_TIP: <OpsMissionsStats /> Start  */}
         <Card className="lg:col-span-4 bg-neutral-900 border-neutral-700">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-neutral-300 tracking-wider">MISSION INFORMATION</CardTitle>
+            <CardTitle className="text-sm font-medium text-neutral-300 tracking-wider">
+              MISSION INFORMATION
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
@@ -262,7 +271,8 @@ export default function CommandCenterPage() {
             </div>
           </CardContent>
         </Card>
+        {/* AI_TIP: <OpsMissionsStats />  End */}
       </div>
     </div>
-  )
+  );
 }
