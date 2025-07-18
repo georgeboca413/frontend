@@ -1,83 +1,45 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Target, MapPin, Clock, Users, AlertTriangle, CheckCircle, XCircle } from "lucide-react"
+import { fetchOperations } from "@/lib/api"
+import type { OperationWithRelations } from "@/lib/types"
 
 export default function OperationsPage() {
-  const [selectedOperation, setSelectedOperation] = useState(null)
+  const [selectedOperation, setSelectedOperation] = useState<OperationWithRelations | null>(null)
+  const [operations, setOperations] = useState<OperationWithRelations[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const operations = [
-    {
-      id: "OP-OMEGA-001",
-      name: "SHADOW PROTOCOL",
-      status: "active",
-      priority: "critical",
-      location: "Eastern Europe",
-      agents: 5,
-      progress: 75,
-      startDate: "2025-06-15",
-      estimatedCompletion: "2025-06-30",
-      description: "Track high-value target in Eastern Europe",
-      objectives: ["Locate target", "Establish surveillance", "Extract intelligence"],
-    },
-    {
-      id: "OP-DELTA-002",
-      name: "GHOST FIRE",
-      status: "planning",
-      priority: "high",
-      location: "Seoul",
-      agents: 3,
-      progress: 25,
-      startDate: "2025-06-20",
-      estimatedCompletion: "2025-07-05",
-      description: "Infiltrate cybercrime network in Seoul",
-      objectives: ["Penetrate network", "Gather evidence", "Identify key players"],
-    },
-    {
-      id: "OP-SIERRA-003",
-      name: "NIGHT STALKER",
-      status: "completed",
-      priority: "medium",
-      location: "Berlin",
-      agents: 2,
-      progress: 100,
-      startDate: "2025-05-28",
-      estimatedCompletion: "2025-06-12",
-      description: "Monitor rogue agent communications in Berlin",
-      objectives: ["Intercept communications", "Decode messages", "Report findings"],
-    },
-    {
-      id: "OP-ALPHA-004",
-      name: "CRIMSON TIDE",
-      status: "active",
-      priority: "high",
-      location: "Cairo",
-      agents: 4,
-      progress: 60,
-      startDate: "2025-06-10",
-      estimatedCompletion: "2025-06-25",
-      description: "Support covert extraction in South America",
-      objectives: ["Secure extraction point", "Neutralize threats", "Extract asset"],
-    },
-    {
-      id: "OP-BRAVO-005",
-      name: "SILENT BLADE",
-      status: "compromised",
-      priority: "critical",
-      location: "Moscow",
-      agents: 6,
-      progress: 40,
-      startDate: "2025-06-05",
-      estimatedCompletion: "2025-06-20",
-      description: "Monitor rogue agent communications in Berlin",
-      objectives: ["Assess compromise", "Extract personnel", "Damage control"],
-    },
-  ]
+  useEffect(() => {
+    const loadOperations = async () => {
+      try {
+        setLoading(true)
+        const operationsData = await fetchOperations()
+        setOperations(operationsData)
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load operations')
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const getStatusColor = (status) => {
+    loadOperations()
+  }, [])
+
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    })
+  }
+
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
         return "bg-white/20 text-white"
@@ -92,7 +54,7 @@ export default function OperationsPage() {
     }
   }
 
-  const getPriorityColor = (priority) => {
+  const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "critical":
         return "bg-red-500/20 text-red-500"
@@ -107,7 +69,7 @@ export default function OperationsPage() {
     }
   }
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case "active":
         return <Target className="w-4 h-4" />
@@ -188,7 +150,20 @@ export default function OperationsPage() {
       </div>
 
       {/* Operations List */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-neutral-400">Loading operations...</div>
+        </div>
+      )}
+      
+      {error && (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-red-400">Error: {error}</div>
+        </div>
+      )}
+      
+      {!loading && !error && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {operations.map((operation) => (
           <Card
             key={operation.id}
@@ -199,7 +174,7 @@ export default function OperationsPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="text-sm font-bold text-white tracking-wider">{operation.name}</CardTitle>
-                  <p className="text-xs text-neutral-400 font-mono">{operation.id}</p>
+                  <p className="text-xs text-neutral-400 font-mono">{operation.operationId}</p>
                 </div>
                 <div className="flex items-center gap-2">{getStatusIcon(operation.status)}</div>
               </div>
@@ -219,11 +194,11 @@ export default function OperationsPage() {
                 </div>
                 <div className="flex items-center gap-2 text-xs text-neutral-400">
                   <Users className="w-3 h-3" />
-                  <span>{operation.agents} agents assigned</span>
+                  <span>{operation.assignments?.length || 0} agents assigned</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-neutral-400">
                   <Clock className="w-3 h-3" />
-                  <span>Est. completion: {operation.estimatedCompletion}</span>
+                  <span>Est. completion: {formatDate(operation.estimatedCompletion)}</span>
                 </div>
               </div>
 
@@ -242,7 +217,8 @@ export default function OperationsPage() {
             </CardContent>
           </Card>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Operation Detail Modal */}
       {selectedOperation && (
@@ -285,15 +261,15 @@ export default function OperationsPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-neutral-400">Agents:</span>
-                        <span className="text-white font-mono">{selectedOperation.agents}</span>
+                        <span className="text-white font-mono">{selectedOperation.assignments?.length || 0}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-neutral-400">Start Date:</span>
-                        <span className="text-white font-mono">{selectedOperation.startDate}</span>
+                        <span className="text-white font-mono">{formatDate(selectedOperation.startDate)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-neutral-400">Est. Completion:</span>
-                        <span className="text-white font-mono">{selectedOperation.estimatedCompletion}</span>
+                        <span className="text-white font-mono">{formatDate(selectedOperation.estimatedCompletion)}</span>
                       </div>
                     </div>
                   </div>
@@ -321,8 +297,8 @@ export default function OperationsPage() {
                     <div className="space-y-2">
                       {selectedOperation.objectives.map((objective, index) => (
                         <div key={index} className="flex items-center gap-2 text-sm">
-                          <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                          <span className="text-neutral-300">{objective}</span>
+                          <div className={`w-2 h-2 rounded-full ${objective.isCompleted ? 'bg-green-500' : 'bg-orange-500'}`}></div>
+                          <span className="text-neutral-300">{objective.title}</span>
                         </div>
                       ))}
                     </div>

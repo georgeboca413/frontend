@@ -1,89 +1,48 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Filter, MoreHorizontal, MapPin, Clock, Shield } from "lucide-react"
+import { fetchAgents } from "@/lib/api"
+import type { AgentWithRelations } from "@/lib/types"
 
 export default function AgentNetworkPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedAgent, setSelectedAgent] = useState(null)
+  const [selectedAgent, setSelectedAgent] = useState<AgentWithRelations | null>(null)
+  const [agents, setAgents] = useState<AgentWithRelations[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const agents = [
-    {
-      id: "G-078W",
-      name: "VENGEFUL SPIRIT",
-      status: "active",
-      location: "Berlin",
-      lastSeen: "2 min ago",
-      missions: 47,
-      risk: "high",
-    },
-    {
-      id: "G-079X",
-      name: "OBSIDIAN SENTINEL",
-      status: "standby",
-      location: "Tokyo",
-      lastSeen: "15 min ago",
-      missions: 32,
-      risk: "medium",
-    },
-    {
-      id: "G-080Y",
-      name: "GHOSTLY FURY",
-      status: "active",
-      location: "Cairo",
-      lastSeen: "1 min ago",
-      missions: 63,
-      risk: "high",
-    },
-    {
-      id: "G-081Z",
-      name: "CURSED REVENANT",
-      status: "compromised",
-      location: "Moscow",
-      lastSeen: "3 hours ago",
-      missions: 28,
-      risk: "critical",
-    },
-    {
-      id: "G-082A",
-      name: "VENOMOUS SHADE",
-      status: "active",
-      location: "London",
-      lastSeen: "5 min ago",
-      missions: 41,
-      risk: "medium",
-    },
-    {
-      id: "G-083B",
-      name: "MYSTIC ENIGMA",
-      status: "training",
-      location: "Base Alpha",
-      lastSeen: "1 day ago",
-      missions: 12,
-      risk: "low",
-    },
-    {
-      id: "G-084C",
-      name: "WRAITH AVENGER",
-      status: "active",
-      location: "Paris",
-      lastSeen: "8 min ago",
-      missions: 55,
-      risk: "high",
-    },
-    {
-      id: "G-085D",
-      name: "SPECTRAL FURY",
-      status: "standby",
-      location: "Sydney",
-      lastSeen: "22 min ago",
-      missions: 38,
-      risk: "medium",
-    },
-  ]
+  useEffect(() => {
+    const loadAgents = async () => {
+      try {
+        setLoading(true)
+        const agentsData = await fetchAgents(searchTerm)
+        setAgents(agentsData)
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load agents')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadAgents()
+  }, [searchTerm])
+
+  const formatLastSeen = (lastSeen: Date) => {
+    const now = new Date()
+    const diff = now.getTime() - new Date(lastSeen).getTime()
+    const minutes = Math.floor(diff / (1000 * 60))
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+
+    if (minutes < 60) return `${minutes} min ago`
+    if (hours < 24) return `${hours} hours ago`
+    return `${days} days ago`
+  }
 
   const filteredAgents = agents.filter(
     (agent) =>
@@ -167,7 +126,20 @@ export default function AgentNetworkPage() {
           <CardTitle className="text-sm font-medium text-neutral-300 tracking-wider">AGENT ROSTER</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {loading && (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-neutral-400">Loading agents...</div>
+            </div>
+          )}
+          
+          {error && (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-red-400">Error: {error}</div>
+            </div>
+          )}
+          
+          {!loading && !error && (
+            <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-neutral-700">
@@ -190,7 +162,7 @@ export default function AgentNetworkPage() {
                     }`}
                     onClick={() => setSelectedAgent(agent)}
                   >
-                    <td className="py-3 px-4 text-sm text-white font-mono">{agent.id}</td>
+                    <td className="py-3 px-4 text-sm text-white font-mono">{agent.agentId}</td>
                     <td className="py-3 px-4 text-sm text-white">{agent.name}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
@@ -217,23 +189,23 @@ export default function AgentNetworkPage() {
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
                         <Clock className="w-3 h-3 text-neutral-400" />
-                        <span className="text-sm text-neutral-300 font-mono">{agent.lastSeen}</span>
+                        <span className="text-sm text-neutral-300 font-mono">{formatLastSeen(agent.lastSeen)}</span>
                       </div>
                     </td>
                     <td className="py-3 px-4 text-sm text-white font-mono">{agent.missions}</td>
                     <td className="py-3 px-4">
                       <span
                         className={`text-xs px-2 py-1 rounded uppercase tracking-wider ${
-                          agent.risk === "critical"
+                          agent.riskLevel === "critical"
                             ? "bg-red-500/20 text-red-500"
-                            : agent.risk === "high"
+                            : agent.riskLevel === "high"
                               ? "bg-orange-500/20 text-orange-500"
-                              : agent.risk === "medium"
+                              : agent.riskLevel === "medium"
                                 ? "bg-neutral-500/20 text-neutral-300"
                                 : "bg-white/20 text-white"
                         }`}
                       >
-                        {agent.risk}
+                        {agent.riskLevel}
                       </span>
                     </td>
                     <td className="py-3 px-4">
@@ -246,6 +218,7 @@ export default function AgentNetworkPage() {
               </tbody>
             </table>
           </div>
+          )}
         </CardContent>
       </Card>
 
@@ -256,7 +229,7 @@ export default function AgentNetworkPage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-lg font-bold text-white tracking-wider">{selectedAgent.name}</CardTitle>
-                <p className="text-sm text-neutral-400 font-mono">{selectedAgent.id}</p>
+                <p className="text-sm text-neutral-400 font-mono">{selectedAgent.agentId}</p>
               </div>
               <Button
                 variant="ghost"
@@ -297,16 +270,16 @@ export default function AgentNetworkPage() {
                   <p className="text-xs text-neutral-400 tracking-wider mb-1">RISK LEVEL</p>
                   <span
                     className={`text-xs px-2 py-1 rounded uppercase tracking-wider ${
-                      selectedAgent.risk === "critical"
+                      selectedAgent.riskLevel === "critical"
                         ? "bg-red-500/20 text-red-500"
-                        : selectedAgent.risk === "high"
+                        : selectedAgent.riskLevel === "high"
                           ? "bg-orange-500/20 text-orange-500"
-                          : selectedAgent.risk === "medium"
+                          : selectedAgent.riskLevel === "medium"
                             ? "bg-neutral-500/20 text-neutral-300"
                             : "bg-white/20 text-white"
                     }`}
                   >
-                    {selectedAgent.risk}
+                    {selectedAgent.riskLevel}
                   </span>
                 </div>
               </div>

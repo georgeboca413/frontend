@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -17,92 +17,42 @@ import {
   CheckCircle,
   Settings,
 } from "lucide-react"
+import { fetchSystems } from "@/lib/api"
+import type { SystemWithMetrics } from "@/lib/types"
 
 export default function SystemsPage() {
-  const [selectedSystem, setSelectedSystem] = useState(null)
+  const [selectedSystem, setSelectedSystem] = useState<SystemWithMetrics | null>(null)
+  const [systems, setSystems] = useState<SystemWithMetrics[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const systems = [
-    {
-      id: "SYS-001",
-      name: "COMMAND SERVER ALPHA",
-      type: "Primary Server",
-      status: "online",
-      health: 98,
-      cpu: 45,
-      memory: 67,
-      storage: 34,
-      uptime: "247 days",
-      location: "Data Center 1",
-      lastMaintenance: "2025-05-15",
-    },
-    {
-      id: "SYS-002",
-      name: "DATABASE CLUSTER BETA",
-      type: "Database",
-      status: "online",
-      health: 95,
-      cpu: 72,
-      memory: 84,
-      storage: 78,
-      uptime: "189 days",
-      location: "Data Center 2",
-      lastMaintenance: "2025-06-01",
-    },
-    {
-      id: "SYS-003",
-      name: "SECURITY GATEWAY",
-      type: "Firewall",
-      status: "warning",
-      health: 87,
-      cpu: 23,
-      memory: 45,
-      storage: 12,
-      uptime: "156 days",
-      location: "DMZ",
-      lastMaintenance: "2025-04-20",
-    },
-    {
-      id: "SYS-004",
-      name: "COMMUNICATION HUB",
-      type: "Network",
-      status: "online",
-      health: 92,
-      cpu: 38,
-      memory: 52,
-      storage: 23,
-      uptime: "203 days",
-      location: "Network Core",
-      lastMaintenance: "2025-05-28",
-    },
-    {
-      id: "SYS-005",
-      name: "BACKUP STORAGE ARRAY",
-      type: "Storage",
-      status: "maintenance",
-      health: 76,
-      cpu: 15,
-      memory: 28,
-      storage: 89,
-      uptime: "0 days",
-      location: "Backup Facility",
-      lastMaintenance: "2025-06-17",
-    },
-    {
-      id: "SYS-006",
-      name: "ANALYTICS ENGINE",
-      type: "Processing",
-      status: "online",
-      health: 94,
-      cpu: 89,
-      memory: 76,
-      storage: 45,
-      uptime: "134 days",
-      location: "Data Center 1",
-      lastMaintenance: "2025-05-10",
-    },
-  ]
+  useEffect(() => {
+    const loadSystems = async () => {
+      try {
+        setLoading(true)
+        const systemsData = await fetchSystems()
+        setSystems(systemsData)
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load systems')
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const getStatusColor = (status) => {
+    loadSystems()
+  }, [])
+
+  const formatDate = (date: Date | null) => {
+    if (!date) return 'Never'
+    return new Date(date).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    })
+  }
+
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "online":
         return "bg-white/20 text-white"
@@ -117,7 +67,7 @@ export default function SystemsPage() {
     }
   }
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case "online":
         return <CheckCircle className="w-4 h-4" />
@@ -132,7 +82,7 @@ export default function SystemsPage() {
     }
   }
 
-  const getSystemIcon = (type) => {
+  const getSystemIcon = (type: string) => {
     switch (type) {
       case "Primary Server":
         return <Server className="w-6 h-6" />
@@ -151,11 +101,20 @@ export default function SystemsPage() {
     }
   }
 
-  const getHealthColor = (health) => {
-    if (health >= 95) return "text-white"
-    if (health >= 85) return "text-white"
-    if (health >= 70) return "text-orange-500"
+  const getHealthColor = (health: number) => {
+    if (health >= 90) return "text-green-500"
+    if (health >= 75) return "text-yellow-500"
+    if (health >= 50) return "text-orange-500"
     return "text-red-500"
+  }
+
+  const getLatestMetrics = (system: SystemWithMetrics) => {
+    const latestMetric = system.metrics?.[0]
+    return {
+      cpu: latestMetric?.cpu || 0,
+      memory: latestMetric?.memory || 0,
+      storage: latestMetric?.storage || 0
+    }
   }
 
   return (
@@ -224,7 +183,20 @@ export default function SystemsPage() {
       </div>
 
       {/* Systems Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-neutral-400">Loading systems...</div>
+        </div>
+      )}
+      
+      {error && (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-red-400">Error: {error}</div>
+        </div>
+      )}
+      
+      {!loading && !error && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {systems.map((system) => (
           <Card
             key={system.id}
@@ -253,34 +225,34 @@ export default function SystemsPage() {
               </div>
               <Progress value={system.health} className="h-2" />
 
-              <div className="grid grid-cols-3 gap-4 text-xs">
+                            <div className="grid grid-cols-3 gap-4 text-xs">
                 <div>
                   <div className="text-neutral-400 mb-1">CPU</div>
-                  <div className="text-white font-mono">{system.cpu}%</div>
+                  <div className="text-white font-mono">{getLatestMetrics(system).cpu}%</div>
                   <div className="w-full bg-neutral-800 rounded-full h-1 mt-1">
                     <div
                       className="bg-orange-500 h-1 rounded-full transition-all duration-300"
-                      style={{ width: `${system.cpu}%` }}
+                      style={{ width: `${getLatestMetrics(system).cpu}%` }}
                     ></div>
                   </div>
                 </div>
                 <div>
-                  <div className="text-neutral-400 mb-1">MEMORY</div>
-                  <div className="text-white font-mono">{system.memory}%</div>
+                  <div className="text-neutral-400 mb-1">RAM</div>
+                  <div className="text-white font-mono">{getLatestMetrics(system).memory}%</div>
                   <div className="w-full bg-neutral-800 rounded-full h-1 mt-1">
                     <div
                       className="bg-orange-500 h-1 rounded-full transition-all duration-300"
-                      style={{ width: `${system.memory}%` }}
+                      style={{ width: `${getLatestMetrics(system).memory}%` }}
                     ></div>
                   </div>
                 </div>
                 <div>
-                  <div className="text-neutral-400 mb-1">STORAGE</div>
-                  <div className="text-white font-mono">{system.storage}%</div>
+                  <div className="text-neutral-400 mb-1">DISK</div>
+                  <div className="text-white font-mono">{getLatestMetrics(system).storage}%</div>
                   <div className="w-full bg-neutral-800 rounded-full h-1 mt-1">
                     <div
                       className="bg-orange-500 h-1 rounded-full transition-all duration-300"
-                      style={{ width: `${system.storage}%` }}
+                      style={{ width: `${getLatestMetrics(system).storage}%` }}
                     ></div>
                   </div>
                 </div>
@@ -299,7 +271,8 @@ export default function SystemsPage() {
             </CardContent>
           </Card>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* System Detail Modal */}
       {selectedSystem && (
@@ -349,7 +322,7 @@ export default function SystemsPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-neutral-400">Last Maintenance:</span>
-                        <span className="text-white font-mono">{selectedSystem.lastMaintenance}</span>
+                        <span className="text-white font-mono">{formatDate(selectedSystem.lastMaintenance)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-neutral-400">Health Score:</span>
@@ -368,12 +341,12 @@ export default function SystemsPage() {
                       <div>
                         <div className="flex justify-between text-sm mb-1">
                           <span className="text-neutral-400">CPU Usage</span>
-                          <span className="text-white font-mono">{selectedSystem.cpu}%</span>
+                          <span className="text-white font-mono">{getLatestMetrics(selectedSystem).cpu}%</span>
                         </div>
                         <div className="w-full bg-neutral-800 rounded-full h-2">
                           <div
                             className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${selectedSystem.cpu}%` }}
+                            style={{ width: `${getLatestMetrics(selectedSystem).cpu}%` }}
                           ></div>
                         </div>
                       </div>
@@ -381,12 +354,12 @@ export default function SystemsPage() {
                       <div>
                         <div className="flex justify-between text-sm mb-1">
                           <span className="text-neutral-400">Memory Usage</span>
-                          <span className="text-white font-mono">{selectedSystem.memory}%</span>
+                          <span className="text-white font-mono">{getLatestMetrics(selectedSystem).memory}%</span>
                         </div>
                         <div className="w-full bg-neutral-800 rounded-full h-2">
                           <div
                             className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${selectedSystem.memory}%` }}
+                            style={{ width: `${getLatestMetrics(selectedSystem).memory}%` }}
                           ></div>
                         </div>
                       </div>
@@ -394,12 +367,12 @@ export default function SystemsPage() {
                       <div>
                         <div className="flex justify-between text-sm mb-1">
                           <span className="text-neutral-400">Storage Usage</span>
-                          <span className="text-white font-mono">{selectedSystem.storage}%</span>
+                          <span className="text-white font-mono">{getLatestMetrics(selectedSystem).storage}%</span>
                         </div>
                         <div className="w-full bg-neutral-800 rounded-full h-2">
                           <div
                             className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${selectedSystem.storage}%` }}
+                            style={{ width: `${getLatestMetrics(selectedSystem).storage}%` }}
                           ></div>
                         </div>
                       </div>

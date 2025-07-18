@@ -1,80 +1,47 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Search, FileText, Eye, Download, Filter, Globe, Shield, AlertTriangle } from "lucide-react"
+import { fetchIntelligenceReports } from "@/lib/api"
+import type { IntelligenceReportWithAgent } from "@/lib/types"
 
 export default function IntelligencePage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedReport, setSelectedReport] = useState(null)
+  const [selectedReport, setSelectedReport] = useState<IntelligenceReportWithAgent | null>(null)
+  const [reports, setReports] = useState<IntelligenceReportWithAgent[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const reports = [
-    {
-      id: "INT-2025-001",
-      title: "CYBERCRIME NETWORK ANALYSIS",
-      classification: "TOP SECRET",
-      source: "SIGINT",
-      location: "Eastern Europe",
-      date: "2025-06-17",
-      status: "verified",
-      threat: "high",
-      summary: "Detailed analysis of emerging cybercrime syndicate operating across multiple jurisdictions",
-      tags: ["cybercrime", "international", "financial"],
-    },
-    {
-      id: "INT-2025-002",
-      title: "ROGUE AGENT COMMUNICATIONS",
-      classification: "SECRET",
-      source: "HUMINT",
-      location: "Berlin",
-      date: "2025-06-16",
-      status: "pending",
-      threat: "critical",
-      summary: "Intercepted communications suggesting potential security breach in European operations",
-      tags: ["internal", "security", "communications"],
-    },
-    {
-      id: "INT-2025-003",
-      title: "ARMS TRAFFICKING ROUTES",
-      classification: "CONFIDENTIAL",
-      source: "OSINT",
-      location: "Middle East",
-      date: "2025-06-15",
-      status: "verified",
-      threat: "medium",
-      summary: "Updated intelligence on weapons smuggling corridors through Mediterranean region",
-      tags: ["trafficking", "weapons", "maritime"],
-    },
-    {
-      id: "INT-2025-004",
-      title: "TERRORIST CELL SURVEILLANCE",
-      classification: "TOP SECRET",
-      source: "HUMINT",
-      location: "North Africa",
-      date: "2025-06-14",
-      status: "active",
-      threat: "critical",
-      summary: "Ongoing surveillance of suspected terrorist cell planning coordinated attacks",
-      tags: ["terrorism", "surveillance", "coordinated"],
-    },
-    {
-      id: "INT-2025-005",
-      title: "DIPLOMATIC INTELLIGENCE BRIEF",
-      classification: "SECRET",
-      source: "DIPLOMATIC",
-      location: "Asia Pacific",
-      date: "2025-06-13",
-      status: "verified",
-      threat: "low",
-      summary: "Political developments affecting regional security and operational considerations",
-      tags: ["diplomatic", "political", "regional"],
-    },
-  ]
+  useEffect(() => {
+    const loadReports = async () => {
+      try {
+        setLoading(true)
+        const reportsData = await fetchIntelligenceReports(searchTerm)
+        setReports(reportsData)
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load intelligence reports')
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const getClassificationColor = (classification) => {
+    loadReports()
+  }, [searchTerm])
+
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    })
+  }
+
+  const getClassificationColor = (classification: string) => {
     switch (classification) {
       case "TOP SECRET":
         return "bg-red-500/20 text-red-500"
@@ -87,7 +54,7 @@ export default function IntelligencePage() {
     }
   }
 
-  const getThreatColor = (threat) => {
+  const getThreatColor = (threat: string) => {
     switch (threat) {
       case "critical":
         return "bg-red-500/20 text-red-500"
@@ -102,7 +69,7 @@ export default function IntelligencePage() {
     }
   }
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "verified":
         return "bg-white/20 text-white"
@@ -115,12 +82,15 @@ export default function IntelligencePage() {
     }
   }
 
-  const filteredReports = reports.filter(
-    (report) =>
+  const filteredReports = reports.filter((report) => {
+    const tags = JSON.parse(report.tags || '[]') as string[]
+    return (
       report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase())),
-  )
+      report.reportId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tags.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
+  })
 
   return (
     <div className="p-6 space-y-6">
@@ -198,7 +168,20 @@ export default function IntelligencePage() {
           <CardTitle className="text-sm font-medium text-neutral-300 tracking-wider">INTELLIGENCE REPORTS</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          {loading && (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-neutral-400">Loading intelligence reports...</div>
+            </div>
+          )}
+          
+          {error && (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-red-400">Error: {error}</div>
+            </div>
+          )}
+          
+          {!loading && !error && (
+            <div className="space-y-4">
             {filteredReports.map((report) => (
               <div
                 key={report.id}
@@ -218,7 +201,7 @@ export default function IntelligencePage() {
                     <p className="text-sm text-neutral-300 ml-8">{report.summary}</p>
 
                     <div className="flex flex-wrap gap-2 ml-8">
-                      {report.tags.map((tag) => (
+                      {JSON.parse(report.tags || '[]').map((tag: string) => (
                         <Badge key={tag} className="bg-neutral-800 text-neutral-300 text-xs">
                           {tag}
                         </Badge>
@@ -229,7 +212,7 @@ export default function IntelligencePage() {
                   <div className="flex flex-col sm:items-end gap-2">
                     <div className="flex flex-wrap gap-2">
                       <Badge className={getClassificationColor(report.classification)}>{report.classification}</Badge>
-                      <Badge className={getThreatColor(report.threat)}>{report.threat.toUpperCase()}</Badge>
+                      <Badge className={getThreatColor(report.threatLevel)}>{report.threatLevel.toUpperCase()}</Badge>
                       <Badge className={getStatusColor(report.status)}>{report.status.toUpperCase()}</Badge>
                     </div>
 
@@ -242,13 +225,14 @@ export default function IntelligencePage() {
                         <Shield className="w-3 h-3" />
                         <span>{report.source}</span>
                       </div>
-                      <div className="font-mono">{report.date}</div>
+                      <div className="font-mono">{formatDate(report.createdAt)}</div>
                     </div>
                   </div>
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -278,8 +262,8 @@ export default function IntelligencePage() {
                       <Badge className={getClassificationColor(selectedReport.classification)}>
                         {selectedReport.classification}
                       </Badge>
-                      <Badge className={getThreatColor(selectedReport.threat)}>
-                        THREAT: {selectedReport.threat.toUpperCase()}
+                      <Badge className={getThreatColor(selectedReport.threatLevel)}>
+                        THREAT: {selectedReport.threatLevel.toUpperCase()}
                       </Badge>
                     </div>
                   </div>
@@ -297,7 +281,7 @@ export default function IntelligencePage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-neutral-400">Date:</span>
-                        <span className="text-white font-mono">{selectedReport.date}</span>
+                        <span className="text-white font-mono">{formatDate(selectedReport.createdAt)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-neutral-400">Status:</span>
@@ -313,7 +297,7 @@ export default function IntelligencePage() {
                   <div>
                     <h3 className="text-sm font-medium text-neutral-300 tracking-wider mb-2">TAGS</h3>
                     <div className="flex flex-wrap gap-2">
-                      {selectedReport.tags.map((tag) => (
+                      {JSON.parse(selectedReport.tags || '[]').map((tag: string) => (
                         <Badge key={tag} className="bg-neutral-800 text-neutral-300">
                           {tag}
                         </Badge>
@@ -326,18 +310,18 @@ export default function IntelligencePage() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-neutral-400">Threat Level</span>
-                        <Badge className={getThreatColor(selectedReport.threat)}>
-                          {selectedReport.threat.toUpperCase()}
+                        <Badge className={getThreatColor(selectedReport.threatLevel)}>
+                          {selectedReport.threatLevel.toUpperCase()}
                         </Badge>
                       </div>
                       <div className="w-full bg-neutral-800 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full transition-all duration-300 ${
-                            selectedReport.threat === "critical"
+                            selectedReport.threatLevel === "critical"
                               ? "bg-red-500 w-full"
-                              : selectedReport.threat === "high"
+                              : selectedReport.threatLevel === "high"
                                 ? "bg-orange-500 w-3/4"
-                                : selectedReport.threat === "medium"
+                                : selectedReport.threatLevel === "medium"
                                   ? "bg-neutral-400 w-1/2"
                                   : "bg-white w-1/4"
                           }`}
