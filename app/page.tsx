@@ -3,11 +3,12 @@
 import { useState } from "react"
 import { ChevronRight, Monitor, Settings, Shield, Target, Users, Bell, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import CommandCenterPage from "./command-center/page"
+import SimpleCommandCenterPage from "./command-center/simple-page"
+import CommandCenterPage from "@/components/pages/command-center-page"
 import AgentNetworkPage from "./agent-network/page"
-import OperationsPage from "./operations/page"
-import IntelligencePage from "./intelligence/page"
-import SystemsPage from "./systems/page"
+import OperationsPage from "@/components/pages/operations-page"
+import IntelligencePage from "@/components/pages/intelligence-page"
+import SystemsPage from "@/components/pages/systems-page"
 
 export default function TacticalDashboard() {
   const [activeSection, setActiveSection] = useState("overview")
@@ -105,7 +106,7 @@ export default function TacticalDashboard() {
         <div className="flex-1 overflow-auto">
           {activeSection === "overview" && <CommandCenterPage />}
           {activeSection === "agents" && <AgentNetworkPage />}
-          {activeSection === "operations" && <OperationsPage />}
+                    {activeSection === "operations" && <OperationsPage />}
           {activeSection === "intelligence" && <IntelligencePage />}
           {activeSection === "systems" && <SystemsPage />}
         </div>

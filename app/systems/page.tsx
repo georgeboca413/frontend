@@ -1,405 +1,153 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import {
-  Server,
-  Database,
-  Shield,
-  Wifi,
-  HardDrive,
-  Cpu,
-  Activity,
-  AlertTriangle,
-  CheckCircle,
-  Settings,
-} from "lucide-react"
-import { fetchSystems } from "@/lib/api"
-import type { SystemWithMetrics } from "@/lib/types"
+import { Server, Database, Shield, Wifi, HardDrive, Cpu } from "lucide-react"
 
 export default function SystemsPage() {
-  const [selectedSystem, setSelectedSystem] = useState<SystemWithMetrics | null>(null)
-  const [systems, setSystems] = useState<SystemWithMetrics[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const loadSystems = async () => {
-      try {
-        setLoading(true)
-        const systemsData = await fetchSystems()
-        setSystems(systemsData)
-        setError(null)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load systems')
-      } finally {
-        setLoading(false)
-      }
+  const systems = [
+    {
+      id: "1",
+      systemId: "SYS-MAIN-001",
+      name: "Primary Operations Server",
+      type: "Primary Server",
+      status: "online",
+      health: 98,
+      location: "Data Center Alpha",
+      uptime: "99.9%",
+    },
+    {
+      id: "2", 
+      systemId: "SYS-DB-002",
+      name: "Intelligence Database Cluster",
+      type: "Database",
+      status: "online",
+      health: 95,
+      location: "Data Center Beta",
+      uptime: "99.7%",
+    },
+    {
+      id: "3",
+      systemId: "SYS-FW-003",
+      name: "Perimeter Security Firewall",
+      type: "Firewall", 
+      status: "warning",
+      health: 87,
+      location: "Network Edge",
+      uptime: "98.5%",
+    },
+    {
+      id: "4",
+      systemId: "SYS-NET-004",
+      name: "Secure Communication Network",
+      type: "Network",
+      status: "online", 
+      health: 92,
+      location: "Global Infrastructure",
+      uptime: "99.2%",
+    },
+    {
+      id: "5",
+      systemId: "SYS-STR-005",
+      name: "Encrypted Storage Array",
+      type: "Storage",
+      status: "maintenance",
+      health: 78,
+      location: "Data Center Gamma", 
+      uptime: "97.8%",
+    },
+    {
+      id: "6",
+      systemId: "SYS-CPU-006",
+      name: "Analytics Processing Unit",
+      type: "Processing",
+      status: "online",
+      health: 89,
+      location: "Compute Cluster",
+      uptime: "98.9%",
     }
+  ]
 
-    loadSystems()
-  }, [])
-
-  const formatDate = (date: Date | null) => {
-    if (!date) return 'Never'
-    return new Date(date).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    })
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "online":
-        return "bg-white/20 text-white"
-      case "warning":
-        return "bg-orange-500/20 text-orange-500"
-      case "maintenance":
-        return "bg-neutral-500/20 text-neutral-300"
-      case "offline":
-        return "bg-red-500/20 text-red-500"
-      default:
-        return "bg-neutral-500/20 text-neutral-300"
-    }
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "online":
-        return <CheckCircle className="w-4 h-4" />
-      case "warning":
-        return <AlertTriangle className="w-4 h-4" />
-      case "maintenance":
-        return <Settings className="w-4 h-4" />
-      case "offline":
-        return <AlertTriangle className="w-4 h-4" />
-      default:
-        return <Activity className="w-4 h-4" />
-    }
-  }
-
-  const getSystemIcon = (type: string) => {
+  const getIcon = (type: string) => {
     switch (type) {
-      case "Primary Server":
-        return <Server className="w-6 h-6" />
-      case "Database":
-        return <Database className="w-6 h-6" />
-      case "Firewall":
-        return <Shield className="w-6 h-6" />
-      case "Network":
-        return <Wifi className="w-6 h-6" />
-      case "Storage":
-        return <HardDrive className="w-6 h-6" />
-      case "Processing":
-        return <Cpu className="w-6 h-6" />
-      default:
-        return <Server className="w-6 h-6" />
-    }
-  }
-
-  const getHealthColor = (health: number) => {
-    if (health >= 90) return "text-green-500"
-    if (health >= 75) return "text-yellow-500"
-    if (health >= 50) return "text-orange-500"
-    return "text-red-500"
-  }
-
-  const getLatestMetrics = (system: SystemWithMetrics) => {
-    const latestMetric = system.metrics?.[0]
-    return {
-      cpu: latestMetric?.cpu || 0,
-      memory: latestMetric?.memory || 0,
-      storage: latestMetric?.storage || 0
+      case 'Primary Server': return Server
+      case 'Database': return Database
+      case 'Firewall': return Shield
+      case 'Network': return Wifi
+      case 'Storage': return HardDrive
+      case 'Processing': return Cpu
+      default: return Server
     }
   }
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-wider">SYSTEMS MONITOR</h1>
-          <p className="text-sm text-neutral-400">Infrastructure health and performance monitoring</p>
-        </div>
-        <div className="flex gap-2">
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white">System Scan</Button>
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white">Maintenance Mode</Button>
+          <h1 className="text-2xl font-bold text-white tracking-wider">SYSTEMS MONITORING</h1>
+          <p className="text-sm text-neutral-400">Infrastructure and system health oversight</p>
         </div>
       </div>
 
-      {/* System Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-neutral-900 border-neutral-700">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-neutral-400 tracking-wider">SYSTEMS ONLINE</p>
-                <p className="text-2xl font-bold text-white font-mono">24/26</p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-white" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-neutral-900 border-neutral-700">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-neutral-400 tracking-wider">WARNINGS</p>
-                <p className="text-2xl font-bold text-orange-500 font-mono">3</p>
-              </div>
-              <AlertTriangle className="w-8 h-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-neutral-900 border-neutral-700">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-neutral-400 tracking-wider">AVG UPTIME</p>
-                <p className="text-2xl font-bold text-white font-mono">99.7%</p>
-              </div>
-              <Activity className="w-8 h-8 text-white" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-neutral-900 border-neutral-700">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-neutral-400 tracking-wider">MAINTENANCE</p>
-                <p className="text-2xl font-bold text-neutral-300 font-mono">1</p>
-              </div>
-              <Settings className="w-8 h-8 text-neutral-300" />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {systems.map((system) => {
+          const Icon = getIcon(system.type)
+          return (
+            <Card key={system.id} className="bg-neutral-900 border-neutral-700 hover:border-neutral-600 transition-colors cursor-pointer">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-4 h-4 text-neutral-400" />
+                    <CardTitle className="text-sm font-medium text-white">
+                      {system.name}
+                    </CardTitle>
+                  </div>
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs ${
+                      system.status === 'online' ? 'bg-white/20 text-white border-white' :
+                      system.status === 'warning' ? 'bg-orange-500/20 text-orange-500 border-orange-500' :
+                      system.status === 'maintenance' ? 'bg-neutral-500/20 text-neutral-300 border-neutral-500' :
+                      'bg-red-500/20 text-red-500 border-red-500'
+                    }`}
+                  >
+                    {system.status}
+                  </Badge>
+                </div>
+                <div className="text-xs text-neutral-500 font-mono">{system.systemId}</div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-neutral-400">Type</span>
+                    <span className="text-white">{system.type}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-400">Location</span>
+                    <span className="text-white">{system.location}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-400">Uptime</span>
+                    <span className="text-white font-mono">{system.uptime}</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-neutral-400">Health</span>
+                    <span className="text-white font-mono">{system.health}%</span>
+                  </div>
+                  <Progress 
+                    value={system.health} 
+                    className="h-2"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
-
-      {/* Systems Grid */}
-      {loading && (
-        <div className="flex items-center justify-center py-8">
-          <div className="text-neutral-400">Loading systems...</div>
-        </div>
-      )}
-      
-      {error && (
-        <div className="flex items-center justify-center py-8">
-          <div className="text-red-400">Error: {error}</div>
-        </div>
-      )}
-      
-      {!loading && !error && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {systems.map((system) => (
-          <Card
-            key={system.id}
-            className="bg-neutral-900 border-neutral-700 hover:border-orange-500/50 transition-colors cursor-pointer"
-            onClick={() => setSelectedSystem(system)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  {getSystemIcon(system.type)}
-                  <div>
-                    <CardTitle className="text-sm font-bold text-white tracking-wider">{system.name}</CardTitle>
-                    <p className="text-xs text-neutral-400">{system.type}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(system.status)}
-                  <Badge className={getStatusColor(system.status)}>{system.status.toUpperCase()}</Badge>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-neutral-400">SYSTEM HEALTH</span>
-                <span className={`text-sm font-bold font-mono ${getHealthColor(system.health)}`}>{system.health}%</span>
-              </div>
-              <Progress value={system.health} className="h-2" />
-
-                            <div className="grid grid-cols-3 gap-4 text-xs">
-                <div>
-                  <div className="text-neutral-400 mb-1">CPU</div>
-                  <div className="text-white font-mono">{getLatestMetrics(system).cpu}%</div>
-                  <div className="w-full bg-neutral-800 rounded-full h-1 mt-1">
-                    <div
-                      className="bg-orange-500 h-1 rounded-full transition-all duration-300"
-                      style={{ width: `${getLatestMetrics(system).cpu}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-neutral-400 mb-1">RAM</div>
-                  <div className="text-white font-mono">{getLatestMetrics(system).memory}%</div>
-                  <div className="w-full bg-neutral-800 rounded-full h-1 mt-1">
-                    <div
-                      className="bg-orange-500 h-1 rounded-full transition-all duration-300"
-                      style={{ width: `${getLatestMetrics(system).memory}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-neutral-400 mb-1">DISK</div>
-                  <div className="text-white font-mono">{getLatestMetrics(system).storage}%</div>
-                  <div className="w-full bg-neutral-800 rounded-full h-1 mt-1">
-                    <div
-                      className="bg-orange-500 h-1 rounded-full transition-all duration-300"
-                      style={{ width: `${getLatestMetrics(system).storage}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-1 text-xs text-neutral-400">
-                <div className="flex justify-between">
-                  <span>Uptime:</span>
-                  <span className="text-white font-mono">{system.uptime}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Location:</span>
-                  <span className="text-white">{system.location}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        </div>
-      )}
-
-      {/* System Detail Modal */}
-      {selectedSystem && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="bg-neutral-900 border-neutral-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div className="flex items-center gap-3">
-                {getSystemIcon(selectedSystem.type)}
-                <div>
-                  <CardTitle className="text-xl font-bold text-white tracking-wider">{selectedSystem.name}</CardTitle>
-                  <p className="text-sm text-neutral-400">
-                    {selectedSystem.id} • {selectedSystem.type}
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                onClick={() => setSelectedSystem(null)}
-                className="text-neutral-400 hover:text-white"
-              >
-                ✕
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-neutral-300 tracking-wider mb-2">SYSTEM STATUS</h3>
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(selectedSystem.status)}
-                      <Badge className={getStatusColor(selectedSystem.status)}>
-                        {selectedSystem.status.toUpperCase()}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-neutral-300 tracking-wider mb-2">SYSTEM INFORMATION</h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-neutral-400">Location:</span>
-                        <span className="text-white">{selectedSystem.location}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-neutral-400">Uptime:</span>
-                        <span className="text-white font-mono">{selectedSystem.uptime}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-neutral-400">Last Maintenance:</span>
-                        <span className="text-white font-mono">{formatDate(selectedSystem.lastMaintenance)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-neutral-400">Health Score:</span>
-                        <span className={`font-mono ${getHealthColor(selectedSystem.health)}`}>
-                          {selectedSystem.health}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-neutral-300 tracking-wider mb-2">RESOURCE USAGE</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-neutral-400">CPU Usage</span>
-                          <span className="text-white font-mono">{getLatestMetrics(selectedSystem).cpu}%</span>
-                        </div>
-                        <div className="w-full bg-neutral-800 rounded-full h-2">
-                          <div
-                            className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${getLatestMetrics(selectedSystem).cpu}%` }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-neutral-400">Memory Usage</span>
-                          <span className="text-white font-mono">{getLatestMetrics(selectedSystem).memory}%</span>
-                        </div>
-                        <div className="w-full bg-neutral-800 rounded-full h-2">
-                          <div
-                            className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${getLatestMetrics(selectedSystem).memory}%` }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-neutral-400">Storage Usage</span>
-                          <span className="text-white font-mono">{getLatestMetrics(selectedSystem).storage}%</span>
-                        </div>
-                        <div className="w-full bg-neutral-800 rounded-full h-2">
-                          <div
-                            className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${getLatestMetrics(selectedSystem).storage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-4 border-t border-neutral-700">
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white">Restart System</Button>
-                <Button
-                  variant="outline"
-                  className="border-neutral-700 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-300 bg-transparent"
-                >
-                  View Logs
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-neutral-700 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-300 bg-transparent"
-                >
-                  Schedule Maintenance
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   )
 }
