@@ -108,8 +108,8 @@ export default function IntelligencePage() {
           </Button>
         </div>
       </div>
-
-      {/* Stats and Search */}
+      
+      {/*AI_TIP: <IntSearch /> Start */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <Card className="lg:col-span-2 bg-neutral-900 border-neutral-700">
           <CardContent className="p-4">
@@ -124,7 +124,10 @@ export default function IntelligencePage() {
             </div>
           </CardContent>
         </Card>
+        {/*AI_TIP: <IntSearch /> End */}
 
+
+        {/*AI_TIP: <IntStats /> Start */}
         <Card className="bg-neutral-900 border-neutral-700">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -161,8 +164,9 @@ export default function IntelligencePage() {
           </CardContent>
         </Card>
       </div>
+      {/*AI_TIP: <IntStats /> End */}
 
-      {/* Intelligence Reports */}
+      {/*AI_TIP: <IntReportThumbnail /> Start */}
       <Card className="bg-neutral-900 border-neutral-700">
         <CardHeader>
           <CardTitle className="text-sm font-medium text-neutral-300 tracking-wider">INTELLIGENCE REPORTS</CardTitle>
@@ -235,8 +239,9 @@ export default function IntelligencePage() {
           )}
         </CardContent>
       </Card>
+      {/*AI_TIP: <IntReportThumbnail /> End */}
 
-      {/* Report Detail Modal */}
+      {/*AI_TIP: <IntReportSummary /> Start */}
       {selectedReport && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <Card className="bg-neutral-900 border-neutral-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -336,7 +341,8 @@ export default function IntelligencePage() {
                 <h3 className="text-sm font-medium text-neutral-300 tracking-wider mb-2">EXECUTIVE SUMMARY</h3>
                 <p className="text-sm text-neutral-300 leading-relaxed">{selectedReport.summary}</p>
               </div>
-
+              
+              {/*AI_TIP: <IntReportDetails /> Start */}
               <div className="flex gap-2 pt-4 border-t border-neutral-700">
                 <Button className="bg-orange-500 hover:bg-orange-600 text-white">
                   <Eye className="w-4 h-4 mr-2" />
@@ -346,6 +352,7 @@ export default function IntelligencePage() {
                   variant="outline"
                   className="border-neutral-700 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-300 bg-transparent"
                 >
+                  {/*AI_TIP: <IntReportDetails /> End */}
                   <Download className="w-4 h-4 mr-2" />
                   Download
                 </Button>
@@ -360,6 +367,7 @@ export default function IntelligencePage() {
           </Card>
         </div>
       )}
+      {/*AI_TIP: <IntReportSummary /> End */}
     </div>
   )
 }
