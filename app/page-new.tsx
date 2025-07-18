@@ -10,11 +10,11 @@ import SystemsPage from "./systems/page";
 
 const sectionTitles: Record<string, string> = {
   overview: "COMMAND CENTER",
-  agents: "AGENT NETWORK", 
+  agents: "AGENT NETWORK",
   operations: "OPERATIONS",
   intelligence: "INTELLIGENCE",
-  systems: "SYSTEMS"
-}
+  systems: "SYSTEMS",
+};
 
 export default function TacticalDashboard() {
   const [activeSection, setActiveSection] = useState("overview");
@@ -32,7 +32,7 @@ export default function TacticalDashboard() {
 
   return (
     <div className="flex h-screen">
-      <Sidebar 
+      <Sidebar
         activeSection={activeSection}
         onSectionChange={setActiveSection}
         collapsed={sidebarCollapsed}
@@ -41,7 +41,7 @@ export default function TacticalDashboard() {
 
       {/* Main Content */}
       <div className={`flex-1 flex flex-col ${!sidebarCollapsed ? "md:ml-0" : ""}`}>
-        <TopBar 
+        <TopBar
           title={sectionTitles[activeSection]}
           onNotificationClick={handleNotificationClick}
           onRefreshClick={handleRefresh}
